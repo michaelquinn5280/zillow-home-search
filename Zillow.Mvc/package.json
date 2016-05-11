@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "name": "zillow-mvc",
+  "private": true,
+  "dependencies": {
+    "systemjs": "0.19.27",
+    "es6-promise": "^3.1.2",
+    "es6-shim": "^0.35.0",
+    "bootstrap": "^3.3.6",
+    "jquery": "^2.2.3",
+    "angular": "1.5.5",
+    "angular-route": "1.5.5",
+    "angular-resource": "1.5.5",
+    "ngmap": "1.17.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1"
+  }
+}

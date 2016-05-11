@@ -1,0 +1,193 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Zillow Home Search</title>
+
+    <link href="~/libs/css/bootstrap.css" rel="stylesheet" />
+    <link href="~/libs/css/site.css" rel="stylesheet" />
+
+    <script src="http://maps.google.com/maps/api/js"></script>
+
+    <script src="~/libs/es6-shim.min.js"></script>
+    <script src="~/libs/system-polyfills.js"></script>
+    <script src="~/libs/system.js"></script>
+    <script src="~/libs/angular.min.js"></script>
+    <script src="~/libs/angular-route.min.js"></script>
+    <script src="~/libs/angular-resource.min.js"></script>
+    <script src="~/libs/ng-map.min.js"></script>
+    <script src="~/libs/jquery.js"></script>
+    <script src="~/libs/bootstrap.js"></script>
+    <script src="~/libs/system.js"></script>
+    <script src="~/app/search/search.service.js"></script>
+    <script src="~/app/app.js"></script>
+    <script src="~/app/search/search.controller.js"></script>
+
+    <script>
+        System.config({
+            packages: {
+                'app': {
+                    defaultExtension: 'js'
+                }
+            }
+        });
+    </script>
+</head>
+<body ng-app="zillowApp">
+    <div id="wrapper" ng-controller="searchController">
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Zillow Home Search</a>
+            </div>
+            <div class="navbar-fixed-bottom h6 center b">* sorry about the bootstrap, ran out of time and didn't get very far with css or unit testing</div>
+        </nav>
+        <div class="row col-lg-12">&nbsp;</div>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
+                    <form id="search-form" name="search_form">
+                        <div class="input-group input-group-lg">
+                            <label for="search-criteria" class="control-label sr-only">Location</label>
+                            <input type="text" class="form-control input-lg" id="search-criteria" name="location" placeholder="location" ng-model="searchedValue" required>
+                            <span class="input-group-btn"><button id="submit-button" type="submit" ng-click="searchHomes()" class="btn btn-primary">Search</button></span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="row col-lg-12">&nbsp;</div>
+        <div class="container-fluid">
+            <div class="row" ng-show="!results">
+                <div class="col-sm-12">
+                    <div class="well">
+                        <h4>let's search something...</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12" ng-show="responseMessage">
+                    <div ng-class="responseMessage.length > 0 ? 'alert-warning' : ''">
+                        <h4>{{responseMessage}}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="row" ng-cloak ng-style="{'visibility': results ? 'visible':'hidden'}">
+                <div class="col-sm-9">
+                    <div class="row-fluid">
+                        <div class="row-height">
+                            <div class="col-sm-3">
+                                <div class="inside inside-full-height">
+                                    <div class="panel panel-default">
+                                        <div class="panel-body">
+                                            <h4>Location</h4>
+                                            <p>{{results.address.street}}</p>
+                                            <p>{{results.address.city}} {{results.address.state}}, {{results.address.zipcode}}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-9">
+                                <div class="inside inside-full-height">
+                                    <map name="resultMap" class="google-map" center="[{{latitude}}, {{longitude}}]" options="map.options" zoom="18" map-type-id="MapTypeId.SATELLITE" tilt="45">
+                                        <marker position="[{{latitude}}, {{longitude}}]"/>
+                                    </map>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row col-lg-12">&nbsp;</div>
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <div class="well">
+                                <h4>Zestimate</h4>
+                                <p>${{results.zestimate.amount.value}} as of {{results.zestimate.lastupdated}}</p>
+                                <p>rent ${{results.rentzestimate}}</p>
+                                <span class="h6">*zestimate shown in {{results.zestimate.valueChange.currency}}</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="well">
+                                <h4>Value Range</h4>
+                                <p>one week change ${{results.zestimate.oneWeekChange.value}}</p>
+                                <p>change last {{results.zestimate.valueChange.duration}} days ${{results.zestimate.valueChange.value}}</p>
+                                <p>low ${{results.zestimate.valuationRange.low.value}} - high ${{results.zestimate.valuationRange.high.value}}</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="well">
+                                <h4>Last Sold</h4>
+                                <p>${{results.lastSoldPrice}}</p>
+                                <p>on {{results.lastSoldDate}}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="well">
+                                <h4>Property Details</h4>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td>fipScounty {{results.fipScounty}}</td>
+                                        <td>lotSizeSqFt {{results.lotSizeSqFt}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>useCode {{results.useCode}}</td>
+                                        <td>finishedSqFt {{results.finishedSqFt}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>taxAssessmentYear {{results.taxAssessmentYear}}</td>
+                                        <td>bathrooms {{results.bathrooms}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>taxAssessment {{results.taxAssessment}}</td>
+                                        <td>bedrooms {{results.bedrooms}}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>yearBuilt {{results.yearBuilt}}</td>
+                                        <td>totalRooms {{results.totalRooms}}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="well row">
+                                <h4>Local Real Estate</h4>
+                                <div class="col-sm-3">
+                                    <p>index value ${{results.localRealEstate[0].zindexValue}}</p>
+                                    <p>neighborhood {{results.localRealEstate[0].name}}</p>
+                                    <p>type {{results.localRealEstate[0].type}}</p>
+                                </div>
+                                <div class="col-sm-3 nav-stacked">
+                                    <p>
+                                        <a ng-href="{{results.localRealEstate[0].links.overview}}" href="#" target="_blank">overview</a>
+                                    </p>
+                                    <p>
+                                        <a ng-href="{{results.localRealEstate[0].links.forSaleByOwner}}" href="#" target="_blank">for sale by owner</a>
+                                    </p>
+                                    <p>
+                                        <a ng-href="{{results.localRealEstate[0].links.forSale}}" href="#" target="_blank">for sale</a>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3 sidenav hidden-xs">
+                    <br>
+                    <h2>Links</h2>
+                    <ul class="nav nav-pills nav-stacked">
+                        <li><a ng-href="{{results.links.homedetails}}" href="#" target="_blank">home details</a></li>
+                        <li><a ng-href="{{results.links.graphsanddata}}" href="#" target="_blank">graphs and data</a></li>
+                        <li><a ng-href="{{results.links.mapthishome}}" href="#" target="_blank">map this home</a></li>
+                        <li><a ng-href="{{results.links.myestimator}}" href="#" target="_blank">my estimator</a></li>
+                        <li><a ng-href="{{results.links.comparables}}" href="#" target="_blank">comparables</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
